@@ -4,6 +4,7 @@ find . -name .git -prune -o -type f
 
 TARGET=HelloWorld
 TAG_NAME=$(date +%F)-${TRAVIS_COMMIT}
+echo TAG_NAME:$TAG_NAME
 
 (cd build/Release && zip -r9 ${TARGET}.zip ${TARGET}.app)
 
