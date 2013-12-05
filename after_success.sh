@@ -7,8 +7,10 @@ TAG_NAME=${TRAVIS_BUILD_NUMBER}
 
 (cd build/Release && zip -r9 ${TARGET}.zip ${TARGET}.app)
 
+wget http://stedolan.github.io/jq/download/osx64/jq
+chmod +x jq
 getreleaseid() {
-    releaseid=$(curl -s "https://api.github.com/repos/$1/releases" | jq '. | map(select(.tag_name == "'$2'")) | .[0].id')
+    releaseid=$(curl -s "https://api.github.com/repos/$1/releases" | ./jq '. | map(select(.tag_name == "'$2'")) | .[0].id')
     if [ "$releaseid" == "null" ]; then
       exit 1
     fi
