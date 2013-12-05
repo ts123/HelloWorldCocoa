@@ -1,1 +1,3 @@
 language: objective-c
+after_success:
+    ./after_success.sh
