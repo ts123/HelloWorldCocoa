@@ -1,22 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 echo after success
 find . -name .git -prune -o -type f
 
 TARGET=HelloWorld
-TAG_NAME=${TRAVIS_BUILD_NUMBER}
+TAG_NAME=$(date +%F)-${TRAVIS_BUILD_NUMBER}
 
 (cd build/Release && zip -r9 ${TARGET}.zip ${TARGET}.app)
 
-wget http://stedolan.github.io/jq/download/osx64/jq
-chmod +x jq
 getreleaseid() {
-    releaseid=$(curl -s "https://api.github.com/repos/$1/releases" | ./jq '. | map(select(.tag_name == "'$2'")) | .[0].id')
-    if [ "$releaseid" == "null" ]; then
-      exit 1
+    if [[ ! -f ./jq ]]; then 
+        wget http://stedolan.github.io/jq/download/osx64/jq
+        chmod +x jq
     fi
-    echo $releaseid
+    if [[ ! -f ./releases.json ]]; then
+        curl -s "https://api.github.com/repos/${1}/releases" > releases.json
+    fi
+    ./jq '. | map(select(.tag_name == "'${2}'")) | .[0].id' releases.json
 }
 
+RELEASE_ID=$(getreleaseid ${TRAVIS_REPO_SLUG} ${TAG_NAME})
+if [ ! "$releaseid" == "null" ]; then
+      exit 1
+fi
+
+# create release
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -X POST \
@@ -24,7 +31,11 @@ curl -H "Authorization: token ${TOKEN}" \
      "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/releases"
 
 RELEASE_ID=$(getreleaseid ${TRAVIS_REPO_SLUG} ${TAG_NAME})
+if [ "$releaseid" == "null" ]; then
+      exit 1
+fi
 
+# upload application.zip
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -H "Content-Type: application/zip" \
