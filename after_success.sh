@@ -14,10 +14,10 @@ getreleaseid() {
         wget http://stedolan.github.io/jq/download/osx64/jq
         chmod +x jq
     fi
-    if [[ ! -f ./releases.json ]]; then
-        curl -s "https://api.github.com/repos/${1}/releases" > releases.json
-    fi
-    ./jq '. | map(select(.tag_name == "'${2}'")) | .[0].id' releases.json
+    # if [[ ! -f ./releases.json ]]; then
+    #     curl -s "https://api.github.com/repos/${1}/releases" > releases.json
+    # fi
+    curl -s "https://api.github.com/repos/${1}/releases" | ./jq '. | map(select(.tag_name == "'${2}'")) | .[0].id'
 }
 
 RELEASE_ID=$(getreleaseid ${TRAVIS_REPO_SLUG} ${TAG_NAME})
