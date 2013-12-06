@@ -2,11 +2,12 @@
 echo after success
 find . -name .git -prune -o -type f
 
+TARGET_DIR=build/Release
 TARGET=HelloWorld
-TAG_NAME=$(date +%F)-${TRAVIS_COMMIT}
+TAG_NAME=$(date +%F)-${TRAVIS_COMMIT:0:7}
 echo TAG_NAME:$TAG_NAME
 
-(cd build/Release && zip -r9 ${TARGET}.zip ${TARGET}.app)
+(cd ${TARGET_DIR} && zip -r9 ${TARGET}.zip ${TARGET}.app)
 
 getreleaseid() {
     if [[ ! -f ./jq ]]; then 
@@ -20,26 +21,28 @@ getreleaseid() {
 }
 
 RELEASE_ID=$(getreleaseid ${TRAVIS_REPO_SLUG} ${TAG_NAME})
-if [ ! "$releaseid" == "null" ]; then
-      exit 1
+if [ ! "$RELEASE_ID" == "null" ]; then
+    echo releaseid:$RELEASE_ID exists
+    exit 1
 fi
 
 # create release
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -X POST \
-     -d '{"tag_name":"'${TAG_NAME}'", "target_commitish":"'${TRAVIS_COMMIT}'", "draft":"true"' \
+     -d $(printf '{"tag_name":"%s", "target_commitish":"%s", "draft":"true"' "${TAG_NAME}" "${TRAVIS_COMMIT}") \
      "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/releases"
 
 RELEASE_ID=$(getreleaseid ${TRAVIS_REPO_SLUG} ${TAG_NAME})
-if [ "$releaseid" == "null" ]; then
-      exit 1
+if [ "$RELEASE_ID" == "null" ]; then
+    echo releaseid:$RELEASE_ID not found
+    exit 1
 fi
 
 # upload application.zip
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -H "Content-Type: application/zip" \
-     --data-binary @build/Release/${TARGET}.zip \
+     --data-binary @${TARGET_DIR}/${TARGET}.zip \
      "https://uploads.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${RELEASE_ID}/assets?name=${TARGET}-${TAG_NAME}.zip"
 
