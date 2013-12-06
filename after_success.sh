@@ -11,8 +11,9 @@ fi
 
 # asset file to be uploaded to github release
 ASEET_DIR=build/Release
-ASSET=HelloWorld-${TAG_NAME}-$(date +%Y%m%d)
-(cd ${ASSET_DIR} && zip -r9 ${ASSET}.zip ${ASSET}.app)
+ASSET_NAME=HelloWorld
+ASSET_FILE=${ASSET_NAME}-${TAG_NAME}-$(date +%Y%m%d).zip
+(cd ${ASSET_DIR} && zip -r9 ${ASSET_FILE} ${ASSET_NAME}.app)
 
 # setup json parser
 _downloadjq() {
@@ -79,6 +80,6 @@ echo upload ${ASSET}
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -H "Content-Type: application/zip" \
-     --data-binary @${ASSET_DIR}/${ASSET}.zip \
-     "https://uploads.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${RELEASE_ID}/assets?name=${ASSET}.zip"
+     --data-binary @${ASSET_DIR}/${ASSET_FILE} \
+     "https://uploads.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${RELEASE_ID}/assets?name=${ASSET_FILE}"
 
