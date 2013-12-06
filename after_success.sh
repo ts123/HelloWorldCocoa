@@ -13,7 +13,7 @@ fi
 ASEET_DIR=build/Release
 ASSET_NAME=HelloWorld
 ASSET_FILE=${ASSET_NAME}-${TAG_NAME}-$(date +%Y%m%d).zip
-(cd ${ASSET_DIR} && zip -r9 ${ASSET_FILE} ${ASSET_NAME}.app)
+(cd ${ASEET_DIR} && zip -r9 ${ASSET_FILE} ${ASSET_NAME}.app)
 
 # setup json parser
 _downloadjq() {
@@ -76,10 +76,10 @@ if [ "$RELEASE_ID" == "null" ]; then
 fi
 
 # upload package.zip
-echo upload ${ASSET}
+echo upload ${ASSET_FILE}
 curl -H "Authorization: token ${TOKEN}" \
      -H "Accept: application/vnd.github.manifold-preview" \
      -H "Content-Type: application/zip" \
-     --data-binary @${ASSET_DIR}/${ASSET_FILE} \
+     --data-binary @${ASEET_DIR}/${ASSET_FILE} \
      "https://uploads.github.com/repos/${TRAVIS_REPO_SLUG}/releases/${RELEASE_ID}/assets?name=${ASSET_FILE}"
 
